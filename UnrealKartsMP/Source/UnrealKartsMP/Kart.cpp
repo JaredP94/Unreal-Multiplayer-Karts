@@ -25,7 +25,12 @@ void AKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector Translation = Velocity * DeltaTime * 100;
+	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+	FVector Acceleration = Force / Mass;
+
+	Velocity += Acceleration * DeltaTime;
+
+	FVector Translation = Velocity * DeltaTime * 100; // cm
 	AddActorWorldOffset(Translation);
 }
 
@@ -39,6 +44,6 @@ void AKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AKart::MoveForward(float Value)
 {
-	Velocity = GetActorForwardVector() * Value * 20;
+	Throttle = Value;
 }
 
