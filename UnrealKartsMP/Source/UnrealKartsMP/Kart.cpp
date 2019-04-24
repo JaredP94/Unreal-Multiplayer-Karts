@@ -31,7 +31,7 @@ void AKart::Tick(float DeltaTime)
 	Velocity += Acceleration * DeltaTime;
 
 	FVector Translation = Velocity * DeltaTime * 100; // cm
-	AddActorWorldOffset(Translation);
+	AddActorWorldOffset(Translation, true);
 }
 
 // Called to bind functionality to input
