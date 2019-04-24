@@ -30,8 +30,18 @@ void AKart::Tick(float DeltaTime)
 
 	Velocity += Acceleration * DeltaTime;
 
+	UpdateLocationFromVelocity(DeltaTime);
+}
+
+void AKart::UpdateLocationFromVelocity(float DeltaTime)
+{
 	FVector Translation = Velocity * DeltaTime * 100; // cm
-	AddActorWorldOffset(Translation, true);
+
+	FHitResult Hit;
+	AddActorWorldOffset(Translation, true, &Hit);
+
+	if (Hit.IsValidBlockingHit())
+		Velocity = FVector::ZeroVector;
 }
 
 // Called to bind functionality to input

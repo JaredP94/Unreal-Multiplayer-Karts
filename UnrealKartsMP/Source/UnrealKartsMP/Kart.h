@@ -34,6 +34,7 @@ private:
 	float MaxDrivingForce = 10000; // N
 
 	void MoveForward(float Value);
+	void UpdateLocationFromVelocity(float DeltaTime);
 
 	FVector Velocity;
 	float Throttle;
