@@ -4,6 +4,7 @@
 #include "Kart.h"
 
 #include "Components/InputComponent.h"
+#include "Quat.h"
 
 // Sets default values
 AKart::AKart()
@@ -30,7 +31,17 @@ void AKart::Tick(float DeltaTime)
 
 	Velocity += Acceleration * DeltaTime;
 
+	ApplyRotation(DeltaTime);
+
 	UpdateLocationFromVelocity(DeltaTime);
+}
+
+void AKart::ApplyRotation(float DeltaTime)
+{
+	float RotationAngle = MaxRotationPerSecond * DeltaTime * SteeringThrow;
+	FQuat RotationDelta = FQuat(GetActorUpVector(), FMath::DegreesToRadians(RotationAngle));
+	Velocity = RotationDelta.RotateVector(Velocity);
+	AddActorWorldRotation(RotationDelta);
 }
 
 void AKart::UpdateLocationFromVelocity(float DeltaTime)
@@ -50,10 +61,16 @@ void AKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AKart::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AKart::MoveRight);
 }
 
 void AKart::MoveForward(float Value)
 {
 	Throttle = Value;
+}
+
+void AKart::MoveRight(float Value)
+{
+	SteeringThrow = Value;
 }
 

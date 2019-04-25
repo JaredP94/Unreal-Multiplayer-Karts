@@ -33,9 +33,15 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MaxDrivingForce = 10000; // N
 
+	UPROPERTY(EditAnywhere)
+	float MaxRotationPerSecond = 60; // deg
+
 	void MoveForward(float Value);
+	void MoveRight(float Value);
+	void ApplyRotation(float DeltaTime);
 	void UpdateLocationFromVelocity(float DeltaTime);
 
 	FVector Velocity;
 	float Throttle;
+	float SteeringThrow;
 };
