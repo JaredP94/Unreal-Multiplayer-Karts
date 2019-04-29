@@ -27,6 +27,8 @@ void AKart::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+	Force += GetResistance();
+
 	FVector Acceleration = Force / Mass;
 
 	Velocity += Acceleration * DeltaTime;
@@ -53,6 +55,11 @@ void AKart::UpdateLocationFromVelocity(float DeltaTime)
 
 	if (Hit.IsValidBlockingHit())
 		Velocity = FVector::ZeroVector;
+}
+
+FVector AKart::GetResistance()
+{
+	return (-Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient);
 }
 
 // Called to bind functionality to input
