@@ -5,6 +5,7 @@
 
 #include "Components/InputComponent.h"
 #include "Quat.h"
+#include "Engine/World.h"
 
 // Sets default values
 AKart::AKart()
@@ -27,7 +28,9 @@ void AKart::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-	Force += GetResistance();
+
+	Force += GetAirResistance();
+	Force += GetRollingResistance();
 
 	FVector Acceleration = Force / Mass;
 
@@ -57,9 +60,16 @@ void AKart::UpdateLocationFromVelocity(float DeltaTime)
 		Velocity = FVector::ZeroVector;
 }
 
-FVector AKart::GetResistance()
+FVector AKart::GetAirResistance()
 {
 	return (-Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient);
+}
+
+FVector AKart::GetRollingResistance()
+{
+	float GravitationalAcceleration = -(GetWorld()->GetGravityZ() / 100);
+	float NormalForce = Mass * GravitationalAcceleration;
+	return (-Velocity.GetSafeNormal() * RollingCoefficient * NormalForce);
 }
 
 // Called to bind functionality to input

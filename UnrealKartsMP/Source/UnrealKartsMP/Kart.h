@@ -37,13 +37,17 @@ private:
 	float MaxRotationPerSecond = 60; // deg
 
 	UPROPERTY(EditAnywhere)
-	float DragCoefficient = 16; // kg/m
+	float DragCoefficient = 15; // kg/m
+
+	UPROPERTY(EditAnywhere)
+	float RollingCoefficient = 0.015; // kg/m
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void ApplyRotation(float DeltaTime);
 	void UpdateLocationFromVelocity(float DeltaTime);
-	FVector GetResistance();
+	FVector GetAirResistance();
+	FVector GetRollingResistance();
 
 	FVector Velocity;
 	float Throttle;
