@@ -119,6 +119,9 @@ void AKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKart, ReplicatedTranform);
+	DOREPLIFETIME(AKart, Velocity);
+	DOREPLIFETIME(AKart, Throttle);
+	DOREPLIFETIME(AKart, SteeringThrow);
 }
 
 void AKart::OnRep_ReplicatedTranform()

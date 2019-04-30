@@ -45,6 +45,15 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTranform)
 	FTransform ReplicatedTranform;
 
+	UPROPERTY(Replicated)
+	FVector Velocity;
+
+	UPROPERTY(Replicated)
+	float Throttle;
+
+	UPROPERTY(Replicated)
+	float SteeringThrow;
+
 	UFUNCTION()
 	void OnRep_ReplicatedTranform();
 
@@ -61,8 +70,4 @@ private:
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
 	FString GetEnumText(ENetRole Role);
-
-	FVector Velocity;
-	float Throttle;
-	float SteeringThrow;
 };
