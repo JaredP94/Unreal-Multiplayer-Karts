@@ -7,12 +7,14 @@
 #include "Quat.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "UnrealNetwork.h"
 
 // Sets default values
 AKart::AKart()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 }
 
@@ -40,6 +42,17 @@ void AKart::Tick(float DeltaTime)
 	ApplyRotation(DeltaTime);
 
 	UpdateLocationFromVelocity(DeltaTime);
+
+	if (HasAuthority())
+	{
+		ReplicatedLocation = GetActorLocation();
+		ReplicatedRotation = GetActorRotation();
+	}
+	else
+	{
+		SetActorLocation(ReplicatedLocation);
+		SetActorRotation(ReplicatedRotation);
+	}
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 150), GetEnumText(Role), this, FColor::Blue, DeltaTime);
 }
@@ -105,6 +118,13 @@ FString AKart::GetEnumText(ENetRole Role)
 	default:
 		return "Error";
 	}
+}
+
+void AKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AKart, ReplicatedLocation);
+	DOREPLIFETIME(AKart, ReplicatedRotation);
 }
 
 // Called to bind functionality to input
