@@ -34,7 +34,7 @@ private:
 	float MaxDrivingForce = 10000; // N
 
 	UPROPERTY(EditAnywhere)
-	float MaxRotationPerSecond = 60; // deg
+	float MinTurnRadius = 10; // m
 
 	UPROPERTY(EditAnywhere)
 	float DragCoefficient = 15; // kg/m

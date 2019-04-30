@@ -43,8 +43,9 @@ void AKart::Tick(float DeltaTime)
 
 void AKart::ApplyRotation(float DeltaTime)
 {
-	float RotationAngle = MaxRotationPerSecond * DeltaTime * SteeringThrow;
-	FQuat RotationDelta = FQuat(GetActorUpVector(), FMath::DegreesToRadians(RotationAngle));
+	float DeltaLocation = FVector::DotProduct(GetActorForwardVector(), Velocity) * DeltaTime;
+	float RotationAngle = DeltaLocation / MinTurnRadius * SteeringThrow;
+	FQuat RotationDelta(GetActorUpVector(), RotationAngle);
 	Velocity = RotationDelta.RotateVector(Velocity);
 	AddActorWorldRotation(RotationDelta);
 }
