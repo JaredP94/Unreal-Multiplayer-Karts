@@ -42,11 +42,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	float RollingCoefficient = 0.015; // kg/m
 
-	UPROPERTY(Replicated)
-	FVector ReplicatedLocation;
+	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTranform)
+	FTransform ReplicatedTranform;
 
-	UPROPERTY(Replicated)
-	FRotator ReplicatedRotation;
+	UFUNCTION()
+	void OnRep_ReplicatedTranform();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveForward(float Value);
