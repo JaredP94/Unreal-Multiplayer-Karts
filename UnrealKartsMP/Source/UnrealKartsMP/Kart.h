@@ -6,6 +6,37 @@
 #include "GameFramework/Pawn.h"
 #include "Kart.generated.h"
 
+USTRUCT()
+struct FKartMove
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	float Throttle;
+	UPROPERTY()
+	float SteeringThrow;
+
+	UPROPERTY()
+	float DeltaTime;
+	UPROPERTY()
+	float Time;
+};
+
+USTRUCT()
+struct FKartState
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	FTransform Tranform;
+
+	UPROPERTY()
+	FVector Velocity;
+
+	UPROPERTY()
+	FKartMove LastMove;
+};
+
 UCLASS()
 class UNREALKARTSMP_API AKart : public APawn
 {
