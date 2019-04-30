@@ -48,10 +48,13 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveRight(float Value);
 
+	void MoveForward(float Value);
+	void MoveRight(float Value);
 	void ApplyRotation(float DeltaTime);
 	void UpdateLocationFromVelocity(float DeltaTime);
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
+	FString GetEnumText(ENetRole Role);
 
 	FVector Velocity;
 	float Throttle;

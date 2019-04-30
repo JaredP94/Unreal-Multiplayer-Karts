@@ -6,6 +6,7 @@
 #include "Components/InputComponent.h"
 #include "Quat.h"
 #include "Engine/World.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AKart::AKart()
@@ -39,6 +40,20 @@ void AKart::Tick(float DeltaTime)
 	ApplyRotation(DeltaTime);
 
 	UpdateLocationFromVelocity(DeltaTime);
+
+	DrawDebugString(GetWorld(), FVector(0, 0, 150), GetEnumText(Role), this, FColor::Blue, DeltaTime);
+}
+
+void AKart::MoveForward(float Value)
+{
+	Throttle = Value;
+	Server_MoveForward(Value);
+}
+
+void AKart::MoveRight(float Value)
+{
+	SteeringThrow = Value;
+	Server_MoveRight(Value);
 }
 
 void AKart::ApplyRotation(float DeltaTime)
@@ -73,13 +88,32 @@ FVector AKart::GetRollingResistance()
 	return (-Velocity.GetSafeNormal() * RollingCoefficient * NormalForce);
 }
 
+FString AKart::GetEnumText(ENetRole Role)
+{
+	switch (Role)
+	{
+	case ROLE_None:
+		return "None";
+	case ROLE_SimulatedProxy:
+		return "SimulatedProxy";
+	case ROLE_AutonomousProxy:
+		return "AutonomousProxy";
+	case ROLE_Authority:
+		return "Authority";
+	case ROLE_MAX:
+		return "Max";
+	default:
+		return "Error";
+	}
+}
+
 // Called to bind functionality to input
 void AKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AKart::Server_MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AKart::Server_MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &AKart::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AKart::MoveRight);
 }
 
 void AKart::Server_MoveForward_Implementation(float Value)
