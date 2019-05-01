@@ -73,12 +73,6 @@ private:
 	UPROPERTY(EditAnywhere)
 	float RollingCoefficient = 0.015; // kg/m
 
-	UPROPERTY(Replicated)
-	float Throttle;
-
-	UPROPERTY(Replicated)
-	float SteeringThrow;
-
 	UFUNCTION()
 	void OnRep_ServerState();
 
@@ -95,10 +89,12 @@ private:
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
 	FString GetEnumText(ENetRole Role);
-	void SimulateMove(FKartMove Move);
+	void SimulateMove(const FKartMove & Move);
 	FKartMove CreateMove(float DeltaTime);
 	void ClearAcknowledgedMoves(FKartMove LastMove);
 
 	FVector Velocity;
+	float Throttle;
+	float SteeringThrow;
 	TArray<FKartMove> UnacknowledgedMoveQueue;
 };

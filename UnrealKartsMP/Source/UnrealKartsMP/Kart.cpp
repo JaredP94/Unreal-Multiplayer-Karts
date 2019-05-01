@@ -111,9 +111,9 @@ FString AKart::GetEnumText(ENetRole Role)
 	}
 }
 
-void AKart::SimulateMove(FKartMove Move)
+void AKart::SimulateMove(const FKartMove & Move)
 {
-	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+	FVector Force = GetActorForwardVector() * MaxDrivingForce * Move.Throttle;
 
 	Force += GetAirResistance();
 	Force += GetRollingResistance();
@@ -140,15 +140,15 @@ FKartMove AKart::CreateMove(float DeltaTime)
 
 void AKart::ClearAcknowledgedMoves(FKartMove LastMove)
 {
-	TArray<FKartMove> NewMoveQeue;
+	TArray<FKartMove> NewMoveQueue;
 
 	for (const FKartMove& Move : UnacknowledgedMoveQueue)
 	{
 		if (Move.Time > LastMove.Time)
-			NewMoveQeue.Add(Move);
+			NewMoveQueue.Add(Move);
 	}
 
-	UnacknowledgedMoveQueue = NewMoveQeue;
+	UnacknowledgedMoveQueue = NewMoveQueue;
 }
 
 void AKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
@@ -164,6 +164,11 @@ void AKart::OnRep_ServerState()
 	Velocity = ServerState.Velocity;
 
 	ClearAcknowledgedMoves(ServerState.LastMove);
+
+	for (const FKartMove& Move : UnacknowledgedMoveQueue)
+	{
+		SimulateMove(Move);
+	}
 }
 
 // Called to bind functionality to input
