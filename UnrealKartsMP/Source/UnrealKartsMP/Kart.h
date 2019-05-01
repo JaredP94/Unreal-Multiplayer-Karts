@@ -93,11 +93,12 @@ private:
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
-	void ApplyRotation(float DeltaTime);
+	void ApplyRotation(float DeltaTime, float SteeringThrow);
 	void UpdateLocationFromVelocity(float DeltaTime);
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
 	FString GetEnumText(ENetRole Role);
+	void SimulateMove(FKartMove Move);
 
 	FVector Velocity;
 };

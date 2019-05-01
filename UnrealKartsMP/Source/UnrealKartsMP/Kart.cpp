@@ -41,26 +41,7 @@ void AKart::Tick(float DeltaTime)
 		// TODO: Set time
 
 		Server_SendMove(Move);
-	}
-
-	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-
-	Force += GetAirResistance();
-	Force += GetRollingResistance();
-
-	FVector Acceleration = Force / Mass;
-
-	Velocity += Acceleration * DeltaTime;
-
-	ApplyRotation(DeltaTime);
-
-	UpdateLocationFromVelocity(DeltaTime);
-
-	if (HasAuthority())
-	{
-		ServerState.Tranform = GetActorTransform();
-		ServerState.Velocity = Velocity;
-		// TODO: Update last move
+		SimulateMove(Move);
 	}
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 150), GetEnumText(Role), this, FColor::Blue, DeltaTime);
@@ -76,7 +57,7 @@ void AKart::MoveRight(float Value)
 	SteeringThrow = Value;
 }
 
-void AKart::ApplyRotation(float DeltaTime)
+void AKart::ApplyRotation(float DeltaTime, float SteeringThrow)
 {
 	float DeltaLocation = FVector::DotProduct(GetActorForwardVector(), Velocity) * DeltaTime;
 	float RotationAngle = DeltaLocation / MinTurnRadius * SteeringThrow;
@@ -127,13 +108,27 @@ FString AKart::GetEnumText(ENetRole Role)
 	}
 }
 
+void AKart::SimulateMove(FKartMove Move)
+{
+	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
+
+	Force += GetAirResistance();
+	Force += GetRollingResistance();
+
+	FVector Acceleration = Force / Mass;
+
+	Velocity += Acceleration * Move.DeltaTime;
+
+	ApplyRotation(Move.DeltaTime, Move.SteeringThrow);
+
+	UpdateLocationFromVelocity(Move.DeltaTime);
+}
+
 void AKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKart, ServerState);
-	DOREPLIFETIME(AKart, Throttle);
-	DOREPLIFETIME(AKart, SteeringThrow);
 }
 
 void AKart::OnRep_ServerState()
@@ -153,8 +148,10 @@ void AKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AKart::Server_SendMove_Implementation(FKartMove Move)
 {
-	Throttle = Move.Throttle;	
-	SteeringThrow = Move.SteeringThrow;
+	SimulateMove(Move);
+	ServerState.LastMove = Move;
+	ServerState.Tranform = GetActorTransform();
+	ServerState.Velocity = Velocity;
 }
 
 bool AKart::Server_SendMove_Validate(FKartMove Move)
