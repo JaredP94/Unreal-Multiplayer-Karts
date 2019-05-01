@@ -33,19 +33,22 @@ void AKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsLocallyControlled())
+	if (Role == ROLE_AutonomousProxy)
 	{
 		FKartMove Move = CreateMove(DeltaTime);
-
-		if (!HasAuthority()) 
-		{
-			UnacknowledgedMoveQueue.Add(Move);
-			UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoveQueue.Num());
-		}
-
-		Server_SendMove(Move);
 		SimulateMove(Move);
+		UnacknowledgedMoveQueue.Add(Move);
+		Server_SendMove(Move);
 	}
+
+	if (Role == ROLE_Authority && GetRemoteRole() == ROLE_SimulatedProxy)
+	{
+		FKartMove Move = CreateMove(DeltaTime);
+		Server_SendMove(Move);
+	}
+
+	if (Role == ROLE_SimulatedProxy)
+		SimulateMove(ServerState.LastMove);
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 150), GetEnumText(Role), this, FColor::Blue, DeltaTime);
 }
