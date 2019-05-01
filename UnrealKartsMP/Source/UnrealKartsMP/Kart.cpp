@@ -34,11 +34,13 @@ void AKart::Tick(float DeltaTime)
 
 	if (IsLocallyControlled())
 	{
-		FKartMove Move;
-		Move.DeltaTime = DeltaTime;
-		Move.SteeringThrow = SteeringThrow;
-		Move.Throttle = Throttle;
-		// TODO: Set time
+		FKartMove Move = CreateMove(DeltaTime);
+
+		if (!HasAuthority()) 
+		{
+			UnacknowledgedMoveQueue.Add(Move);
+			UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoveQueue.Num());
+		}
 
 		Server_SendMove(Move);
 		SimulateMove(Move);
@@ -124,6 +126,30 @@ void AKart::SimulateMove(FKartMove Move)
 	UpdateLocationFromVelocity(Move.DeltaTime);
 }
 
+FKartMove AKart::CreateMove(float DeltaTime)
+{
+	FKartMove Move;
+	Move.DeltaTime = DeltaTime;
+	Move.SteeringThrow = SteeringThrow;
+	Move.Throttle = Throttle;
+	Move.Time = GetWorld()->TimeSeconds;
+
+	return Move;
+}
+
+void AKart::ClearAcknowledgedMoves(FKartMove LastMove)
+{
+	TArray<FKartMove> NewMoveQeue;
+
+	for (const FKartMove& Move : UnacknowledgedMoveQueue)
+	{
+		if (Move.Time > LastMove.Time)
+			NewMoveQeue.Add(Move);
+	}
+
+	UnacknowledgedMoveQueue = NewMoveQeue;
+}
+
 void AKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -135,6 +161,8 @@ void AKart::OnRep_ServerState()
 {
 	SetActorTransform(ServerState.Tranform);
 	Velocity = ServerState.Velocity;
+
+	ClearAcknowledgedMoves(ServerState.LastMove);
 }
 
 // Called to bind functionality to input

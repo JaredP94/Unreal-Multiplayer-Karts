@@ -73,9 +73,6 @@ private:
 	UPROPERTY(EditAnywhere)
 	float RollingCoefficient = 0.015; // kg/m
 
-	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTranform)
-	FTransform ReplicatedTranform;
-
 	UPROPERTY(Replicated)
 	float Throttle;
 
@@ -99,6 +96,9 @@ private:
 	FVector GetRollingResistance();
 	FString GetEnumText(ENetRole Role);
 	void SimulateMove(FKartMove Move);
+	FKartMove CreateMove(float DeltaTime);
+	void ClearAcknowledgedMoves(FKartMove LastMove);
 
 	FVector Velocity;
+	TArray<FKartMove> UnacknowledgedMoveQueue;
 };
