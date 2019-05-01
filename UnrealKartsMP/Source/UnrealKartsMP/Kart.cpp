@@ -32,6 +32,17 @@ void AKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (IsLocallyControlled())
+	{
+		FKartMove Move;
+		Move.DeltaTime = DeltaTime;
+		Move.SteeringThrow = SteeringThrow;
+		Move.Throttle = Throttle;
+		// TODO: Set time
+
+		Server_SendMove(Move);
+	}
+
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
 
 	Force += GetAirResistance();
@@ -46,7 +57,11 @@ void AKart::Tick(float DeltaTime)
 	UpdateLocationFromVelocity(DeltaTime);
 
 	if (HasAuthority())
-		ReplicatedTranform = GetActorTransform();
+	{
+		ServerState.Tranform = GetActorTransform();
+		ServerState.Velocity = Velocity;
+		// TODO: Update last move
+	}
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 150), GetEnumText(Role), this, FColor::Blue, DeltaTime);
 }
@@ -54,13 +69,11 @@ void AKart::Tick(float DeltaTime)
 void AKart::MoveForward(float Value)
 {
 	Throttle = Value;
-	Server_MoveForward(Value);
 }
 
 void AKart::MoveRight(float Value)
 {
 	SteeringThrow = Value;
-	Server_MoveRight(Value);
 }
 
 void AKart::ApplyRotation(float DeltaTime)
@@ -118,15 +131,15 @@ void AKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimePr
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AKart, ReplicatedTranform);
-	DOREPLIFETIME(AKart, Velocity);
+	DOREPLIFETIME(AKart, ServerState);
 	DOREPLIFETIME(AKart, Throttle);
 	DOREPLIFETIME(AKart, SteeringThrow);
 }
 
-void AKart::OnRep_ReplicatedTranform()
+void AKart::OnRep_ServerState()
 {
-	SetActorTransform(ReplicatedTranform);
+	SetActorTransform(ServerState.Tranform);
+	Velocity = ServerState.Velocity;
 }
 
 // Called to bind functionality to input
@@ -138,22 +151,13 @@ void AKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveRight", this, &AKart::MoveRight);
 }
 
-void AKart::Server_MoveForward_Implementation(float Value)
+void AKart::Server_SendMove_Implementation(FKartMove Move)
 {
-	Throttle = Value;
+	Throttle = Move.Throttle;	
+	SteeringThrow = Move.SteeringThrow;
 }
 
-bool AKart::Server_MoveForward_Validate(float Value)
+bool AKart::Server_SendMove_Validate(FKartMove Move)
 {
-	return FMath::Abs(Value) <= 1;
-}
-
-void AKart::Server_MoveRight_Implementation(float Value)
-{
-	SteeringThrow = Value;
-}
-
-bool AKart::Server_MoveRight_Validate(float Value)
-{
-	return FMath::Abs(Value) <= 1;
+	return true; // TODO: Implement validation
 }

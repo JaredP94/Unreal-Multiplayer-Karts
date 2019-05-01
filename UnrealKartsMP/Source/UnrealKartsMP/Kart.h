@@ -77,22 +77,19 @@ private:
 	FTransform ReplicatedTranform;
 
 	UPROPERTY(Replicated)
-	FVector Velocity;
-
-	UPROPERTY(Replicated)
 	float Throttle;
 
 	UPROPERTY(Replicated)
 	float SteeringThrow;
 
 	UFUNCTION()
-	void OnRep_ReplicatedTranform();
+	void OnRep_ServerState();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_MoveForward(float Value);
+	void Server_SendMove(FKartMove Move);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_MoveRight(float Value);
+	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
+	FKartState ServerState;
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -101,4 +98,6 @@ private:
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
 	FString GetEnumText(ENetRole Role);
+
+	FVector Velocity;
 };
