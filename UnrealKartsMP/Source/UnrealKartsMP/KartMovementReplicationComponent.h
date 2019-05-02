@@ -54,6 +54,12 @@ private:
 
 	void ClearAcknowledgedMoves(FKartMove LastMove);
 	void UpdateServerState(const FKartMove & Move);
+	void ClientTick(float DeltaTime);
+	void AutonomousProxy_OnRep_ServerState();
+	void SimulatedProxy_OnRep_ServerState();
 
 	TArray<FKartMove> UnacknowledgedMoveQueue;
+	float ClientTimeSinceUpdate;
+	float ClientTimeBetweenLastUpdates;
+	FVector ClientStartLocation;
 };

@@ -46,7 +46,7 @@ void UKartMovementReplicationComponent::TickComponent(float DeltaTime, ELevelTic
 		UpdateServerState(LastMove);
 
 	if (GetOwnerRole() == ROLE_SimulatedProxy)
-		MovementComponent->SimulateMove(ServerState.LastMove);
+		ClientTick(DeltaTime);
 }
 
 void UKartMovementReplicationComponent::ClearAcknowledgedMoves(FKartMove LastMove)
@@ -67,6 +67,43 @@ void UKartMovementReplicationComponent::UpdateServerState(const FKartMove & Move
 	ServerState.LastMove = Move;
 	ServerState.Tranform = GetOwner()->GetActorTransform();
 	ServerState.Velocity = MovementComponent->GetVelocity();
+}
+
+void UKartMovementReplicationComponent::ClientTick(float DeltaTime)
+{
+	ClientTimeSinceUpdate += DeltaTime;
+
+	if (ClientTimeBetweenLastUpdates < KINDA_SMALL_NUMBER) return;
+
+	FVector TargetLocation = ServerState.Tranform.GetLocation();
+	float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
+	FVector StartLocation = ClientStartLocation;
+
+	FVector NewLocation = FMath::LerpStable(StartLocation, TargetLocation, LerpRatio);
+
+	GetOwner()->SetActorLocation(NewLocation);
+}
+
+void UKartMovementReplicationComponent::AutonomousProxy_OnRep_ServerState()
+{
+	switch (GetOwnerRole())
+	{
+	case ROLE_AutonomousProxy:
+		AutonomousProxy_OnRep_ServerState();
+		break;
+	case ROLE_SimulatedProxy:
+		SimulatedProxy_OnRep_ServerState();
+		break;
+	default:
+		break;
+	}
+}
+
+void UKartMovementReplicationComponent::SimulatedProxy_OnRep_ServerState()
+{
+	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
+	ClientTimeSinceUpdate = 0;
+	ClientStartLocation = GetOwner()->GetActorLocation();
 }
 
 void UKartMovementReplicationComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
