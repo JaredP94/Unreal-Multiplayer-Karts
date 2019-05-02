@@ -5,22 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "KartMovementComponent.h"
+#include "KartMovementReplicationComponent.h"
 #include "Kart.generated.h"
-
-USTRUCT()
-struct FKartState
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY()
-	FTransform Tranform;
-
-	UPROPERTY()
-	FVector Velocity;
-
-	UPROPERTY()
-	FKartMove LastMove;
-};
 
 UCLASS()
 class UNREALKARTSMP_API AKart : public APawn
@@ -43,23 +29,14 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	UFUNCTION()
-	void OnRep_ServerState();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SendMove(FKartMove Move);
-
-	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
-	FKartState ServerState;
-
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	UKartMovementComponent* MovementComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UKartMovementReplicationComponent* MovementReplicationComponent;
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	
 	FString GetEnumText(ENetRole Role);
-	void ClearAcknowledgedMoves(FKartMove LastMove);
-
-	TArray<FKartMove> UnacknowledgedMoveQueue;
 };

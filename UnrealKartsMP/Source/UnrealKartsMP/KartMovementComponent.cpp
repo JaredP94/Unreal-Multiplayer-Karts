@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "GameFramework/GameStateBase.h"
+#include "Quat.h"
 
 // Sets default values for this component's properties
 UKartMovementComponent::UKartMovementComponent()
