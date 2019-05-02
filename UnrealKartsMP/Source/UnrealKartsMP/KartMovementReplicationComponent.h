@@ -60,11 +60,17 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendMove(FKartMove Move);
 
+	UFUNCTION(BlueprintCallable)
+	void SetMeshOffsetRoot(USceneComponent* Root);
+
 	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
 	FKartState ServerState;
 
 	UPROPERTY()
 	UKartMovementComponent* MovementComponent;
+
+	UPROPERTY()
+	USceneComponent* MeshOffsetRoot;
 
 	void ClearAcknowledgedMoves(FKartMove LastMove);
 	void UpdateServerState(const FKartMove & Move);
@@ -82,4 +88,5 @@ private:
 	float ClientTimeBetweenLastUpdates;
 	FTransform ClientStartTransform;
 	FVector ClientStartVelocity;
+	float ClientSimulatedTime;
 };

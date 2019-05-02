@@ -22,6 +22,12 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UKartMovementComponent* MovementComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UKartMovementReplicationComponent* MovementReplicationComponent;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -29,12 +35,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	UPROPERTY(VisibleAnywhere)
-	UKartMovementComponent* MovementComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	UKartMovementReplicationComponent* MovementReplicationComponent;
-
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	
