@@ -61,5 +61,5 @@ private:
 	TArray<FKartMove> UnacknowledgedMoveQueue;
 	float ClientTimeSinceUpdate;
 	float ClientTimeBetweenLastUpdates;
-	FVector ClientStartLocation;
+	FTransform ClientStartTransform;
 };
