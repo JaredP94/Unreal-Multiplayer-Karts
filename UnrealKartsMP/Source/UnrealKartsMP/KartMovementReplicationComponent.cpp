@@ -34,19 +34,16 @@ void UKartMovementReplicationComponent::TickComponent(float DeltaTime, ELevelTic
 	if (!MovementComponent)
 		return;
 
+	FKartMove LastMove = MovementComponent->GetLastMove();
+
 	if (GetOwnerRole() == ROLE_AutonomousProxy)
 	{
-		FKartMove Move = MovementComponent->CreateMove(DeltaTime);
-		MovementComponent->SimulateMove(Move);
-		UnacknowledgedMoveQueue.Add(Move);
-		Server_SendMove(Move);
+		UnacknowledgedMoveQueue.Add(LastMove);
+		Server_SendMove(LastMove);
 	}
 
-	if (GetOwnerRole() == ROLE_Authority && GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
-	{
-		FKartMove Move = MovementComponent->CreateMove(DeltaTime);
-		Server_SendMove(Move);
-	}
+	if (GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
+		UpdateServerState(LastMove);
 
 	if (GetOwnerRole() == ROLE_SimulatedProxy)
 		MovementComponent->SimulateMove(ServerState.LastMove);
@@ -63,6 +60,13 @@ void UKartMovementReplicationComponent::ClearAcknowledgedMoves(FKartMove LastMov
 	}
 
 	UnacknowledgedMoveQueue = NewMoveQueue;
+}
+
+void UKartMovementReplicationComponent::UpdateServerState(const FKartMove & Move)
+{
+	ServerState.LastMove = Move;
+	ServerState.Tranform = GetOwner()->GetActorTransform();
+	ServerState.Velocity = MovementComponent->GetVelocity();
 }
 
 void UKartMovementReplicationComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
@@ -94,9 +98,7 @@ void UKartMovementReplicationComponent::Server_SendMove_Implementation(FKartMove
 		return;
 
 	MovementComponent->SimulateMove(Move);
-	ServerState.LastMove = Move;
-	ServerState.Tranform = GetOwner()->GetActorTransform();
-	ServerState.Velocity = MovementComponent->GetVelocity();
+	UpdateServerState(Move);
 }
 
 bool UKartMovementReplicationComponent::Server_SendMove_Validate(FKartMove Move)

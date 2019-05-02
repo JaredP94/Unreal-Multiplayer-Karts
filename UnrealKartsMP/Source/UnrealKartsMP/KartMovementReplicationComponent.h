@@ -53,6 +53,7 @@ private:
 	UKartMovementComponent* MovementComponent;
 
 	void ClearAcknowledgedMoves(FKartMove LastMove);
+	void UpdateServerState(const FKartMove & Move);
 
 	TArray<FKartMove> UnacknowledgedMoveQueue;
 };

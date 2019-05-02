@@ -32,7 +32,11 @@ void UKartMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (GetOwnerRole() == ROLE_AutonomousProxy || GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
+	{
+		LastMove = CreateMove(DeltaTime);
+		SimulateMove(LastMove);
+	}
 }
 
 void UKartMovementComponent::ApplyRotation(float DeltaTime, float SteeringThrowValue)
@@ -112,4 +116,9 @@ void UKartMovementComponent::SetSteeringThrow(float Value)
 void UKartMovementComponent::SetThrottle(float Value)
 {
 	Throttle = Value;
+}
+
+FKartMove UKartMovementComponent::GetLastMove()
+{
+	return LastMove;
 }
