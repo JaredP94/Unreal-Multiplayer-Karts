@@ -38,5 +38,5 @@ private:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	
-	FString GetEnumText(ENetRole Role);
+	FString GetEnumText(ENetRole OwnerRole);
 };

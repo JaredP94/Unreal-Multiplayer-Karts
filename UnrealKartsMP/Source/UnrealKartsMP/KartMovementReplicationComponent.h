@@ -22,6 +22,20 @@ struct FKartState
 	FKartMove LastMove;
 };
 
+struct FHermiteCubicSpline
+{
+	FVector StartLocation, StartDerivative, TargetLocation, TargetDerivative;
+
+	FVector InterpolateLocation(float LerpRatio) const
+	{
+		return FMath::CubicInterp(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	}
+	FVector InterpolateDerivative(float LerpRatio) const
+	{
+		return FMath::CubicInterpDerivative(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	}
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UNREALKARTSMP_API UKartMovementReplicationComponent : public UActorComponent
 {
@@ -57,6 +71,11 @@ private:
 	void ClientTick(float DeltaTime);
 	void AutonomousProxy_OnRep_ServerState();
 	void SimulatedProxy_OnRep_ServerState();
+	FHermiteCubicSpline CreateSpline();
+	void InterpolateLocation(const FHermiteCubicSpline &Spline, float LerpRatio);
+	void InterpolateVelocity(const FHermiteCubicSpline &Spline, float LerpRatio);
+	void InterpolateRotation(float LerpRatio);
+	float VelocityToDerivative();
 
 	TArray<FKartMove> UnacknowledgedMoveQueue;
 	float ClientTimeSinceUpdate;

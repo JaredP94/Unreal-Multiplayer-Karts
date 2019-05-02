@@ -53,9 +53,9 @@ void AKart::MoveRight(float Value)
 	MovementComponent->SetSteeringThrow(Value);
 }
 
-FString AKart::GetEnumText(ENetRole Role)
+FString AKart::GetEnumText(ENetRole OwnerRole)
 {
-	switch (Role)
+	switch (OwnerRole)
 	{
 	case ROLE_None:
 		return "None";

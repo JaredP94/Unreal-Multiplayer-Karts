@@ -79,28 +79,12 @@ void UKartMovementReplicationComponent::ClientTick(float DeltaTime)
 	if (!MovementComponent) 
 		return;
 
-	FVector TargetLocation = ServerState.Tranform.GetLocation();
 	float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
-	FVector StartLocation = ClientStartTransform.GetLocation();
+	FHermiteCubicSpline Spline = CreateSpline();
 
-	float VelocityToDerivative = ClientTimeBetweenLastUpdates * 100;
-	FVector StartDerivative = ClientStartVelocity * VelocityToDerivative;
-	FVector TargetDerivative = ServerState.Velocity * VelocityToDerivative;
-
-	FVector NewLocation = FMath::CubicInterp(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
-
-	GetOwner()->SetActorLocation(NewLocation);
-
-	FVector NewDerivative = FMath::CubicInterpDerivative(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
-	FVector NewVelocity = NewDerivative / VelocityToDerivative;
-	MovementComponent->SetVelocity(NewVelocity);
-
-	FQuat TargetRotation = ServerState.Tranform.GetRotation();
-	FQuat StartRotation = ClientStartTransform.GetRotation();
-
-	FQuat NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
-
-	GetOwner()->SetActorRotation(NewRotation);
+	InterpolateLocation(Spline, LerpRatio);
+	InterpolateVelocity(Spline, LerpRatio);
+	InterpolateRotation(LerpRatio);
 }
 
 void UKartMovementReplicationComponent::AutonomousProxy_OnRep_ServerState()
@@ -127,6 +111,45 @@ void UKartMovementReplicationComponent::SimulatedProxy_OnRep_ServerState()
 	ClientTimeSinceUpdate = 0;
 	ClientStartTransform = GetOwner()->GetActorTransform();
 	ClientStartVelocity = MovementComponent->GetVelocity();
+}
+
+FHermiteCubicSpline UKartMovementReplicationComponent::CreateSpline()
+{
+	FHermiteCubicSpline Spline;
+	Spline.TargetLocation = ServerState.Tranform.GetLocation();
+	Spline.StartLocation = ClientStartTransform.GetLocation();
+	Spline.StartDerivative = ClientStartVelocity * VelocityToDerivative();
+	Spline.TargetDerivative = ServerState.Velocity * VelocityToDerivative();
+
+	return Spline;
+}
+
+void UKartMovementReplicationComponent::InterpolateLocation(const FHermiteCubicSpline & Spline, float LerpRatio)
+{
+	FVector NewLocation = Spline.InterpolateLocation(LerpRatio);
+	GetOwner()->SetActorLocation(NewLocation);
+}
+
+void UKartMovementReplicationComponent::InterpolateVelocity(const FHermiteCubicSpline & Spline, float LerpRatio)
+{
+	FVector NewDerivative = Spline.InterpolateDerivative(LerpRatio);
+	FVector NewVelocity = NewDerivative / VelocityToDerivative();
+	MovementComponent->SetVelocity(NewVelocity);
+}
+
+void UKartMovementReplicationComponent::InterpolateRotation(float LerpRatio)
+{
+	FQuat TargetRotation = ServerState.Tranform.GetRotation();
+	FQuat StartRotation = ClientStartTransform.GetRotation();
+
+	FQuat NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
+
+	GetOwner()->SetActorRotation(NewRotation);
+}
+
+float UKartMovementReplicationComponent::VelocityToDerivative()
+{
+	return ClientTimeBetweenLastUpdates * 100;
 }
 
 void UKartMovementReplicationComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
