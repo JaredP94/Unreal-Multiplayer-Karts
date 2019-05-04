@@ -3,6 +3,7 @@
 
 #include "KartMovementReplicationComponent.h"
 #include "GameFramework/Actor.h"
+#include "Engine/World.h"
 #include "UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -89,16 +90,17 @@ void UKartMovementReplicationComponent::ClientTick(float DeltaTime)
 
 void UKartMovementReplicationComponent::AutonomousProxy_OnRep_ServerState()
 {
-	switch (GetOwnerRole())
+	if (!MovementComponent) 
+		return;
+
+	GetOwner()->SetActorTransform(ServerState.Tranform);
+	MovementComponent->SetVelocity(ServerState.Velocity);
+
+	ClearAcknowledgedMoves(ServerState.LastMove);
+
+	for (const FKartMove& Move : UnacknowledgedMoveQueue)
 	{
-	case ROLE_AutonomousProxy:
-		AutonomousProxy_OnRep_ServerState();
-		break;
-	case ROLE_SimulatedProxy:
-		SimulatedProxy_OnRep_ServerState();
-		break;
-	default:
-		break;
+		MovementComponent->SimulateMove(Move);
 	}
 }
 
@@ -110,7 +112,7 @@ void UKartMovementReplicationComponent::SimulatedProxy_OnRep_ServerState()
 	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
 	ClientTimeSinceUpdate = 0;
 
-	if (MeshOffsetRoot)
+	if (MeshOffsetRoot != nullptr)
 	{
 		ClientStartTransform.SetLocation(MeshOffsetRoot->GetComponentLocation());
 		ClientStartTransform.SetRotation(MeshOffsetRoot->GetComponentQuat());
@@ -136,7 +138,7 @@ void UKartMovementReplicationComponent::InterpolateLocation(const FHermiteCubicS
 {
 	FVector NewLocation = Spline.InterpolateLocation(LerpRatio);
 
-	if (MeshOffsetRoot)
+	if (MeshOffsetRoot != nullptr)
 		MeshOffsetRoot->SetWorldLocation(NewLocation);
 }
 
@@ -154,7 +156,7 @@ void UKartMovementReplicationComponent::InterpolateRotation(float LerpRatio)
 
 	FQuat NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
 
-	if (MeshOffsetRoot)
+	if (MeshOffsetRoot != nullptr)
 		MeshOffsetRoot->SetWorldRotation(NewRotation);
 }
 
@@ -172,17 +174,16 @@ void UKartMovementReplicationComponent::GetLifetimeReplicatedProps(TArray<FLifet
 
 void UKartMovementReplicationComponent::OnRep_ServerState()
 {
-	if (!MovementComponent)
-		return;
-
-	GetOwner()->SetActorTransform(ServerState.Tranform);
-	MovementComponent->SetVelocity(ServerState.Velocity);
-
-	ClearAcknowledgedMoves(ServerState.LastMove);
-
-	for (const FKartMove& Move : UnacknowledgedMoveQueue)
+	switch (GetOwnerRole())
 	{
-		MovementComponent->SimulateMove(Move);
+	case ROLE_AutonomousProxy:
+		AutonomousProxy_OnRep_ServerState();
+		break;
+	case ROLE_SimulatedProxy:
+		SimulatedProxy_OnRep_ServerState();
+		break;
+	default:
+		break;
 	}
 }
 

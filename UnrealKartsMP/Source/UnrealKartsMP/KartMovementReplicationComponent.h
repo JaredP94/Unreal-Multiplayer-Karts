@@ -56,6 +56,8 @@ public:
 private:
 	UFUNCTION()
 	void OnRep_ServerState();
+	void AutonomousProxy_OnRep_ServerState();
+	void SimulatedProxy_OnRep_ServerState();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendMove(FKartMove Move);
@@ -75,8 +77,6 @@ private:
 	void ClearAcknowledgedMoves(FKartMove LastMove);
 	void UpdateServerState(const FKartMove & Move);
 	void ClientTick(float DeltaTime);
-	void AutonomousProxy_OnRep_ServerState();
-	void SimulatedProxy_OnRep_ServerState();
 	FHermiteCubicSpline CreateSpline();
 	void InterpolateLocation(const FHermiteCubicSpline &Spline, float LerpRatio);
 	void InterpolateVelocity(const FHermiteCubicSpline &Spline, float LerpRatio);
